@@ -108,6 +108,53 @@ function initializeTables() {
       }
     );
 
+    // Dodaj przykładowe koncerty
+    db.get('SELECT COUNT(*) as count FROM concerts', (err, result) => {
+      if (!err && result.count === 0) {
+        const sampleConcerts = [
+          {
+            title: 'Koncert Bożonarodzeniowy w Nietrzanowie',
+            description: 'Uroczysty koncert kolęd w kościele parafialnym w Nietrzanowie. Zapraszamy na wspólne kolędowanie z udziałem całego chóru.',
+            date: '2026-01-25 19:00:00',
+            location: 'Kościół parafialny w Nietrzanowie',
+            is_public: 1
+          },
+          {
+            title: 'Wielkanocny Koncert Paschalny',
+            description: 'Koncert z okazji Wielkanocy, prezentujący utwory pasyjne i wielkanocne. Specjalny program z udziałem solistów.',
+            date: '2025-12-15 18:00:00',
+            location: 'Kościół NMP Wniebowziętej w Lwówku',
+            is_public: 1
+          },
+          {
+            title: 'Adwentowy Koncert Świąteczny',
+            description: 'Koncert adwentowy z najpiękniejszymi utworami świątecznymi. Gościnnie wystąpi dziecięcy schola parafialna.',
+            date: '2025-12-08 17:30:00',
+            location: 'Kościół NMP Wniebowziętej w Lwówku',
+            is_public: 1
+          },
+          {
+            title: 'Koncert z okazji Dnia Papieża Jana Pawła II',
+            description: 'Koncert ku czci Świętego Jana Pawła II, wykonujący polskie utwory religijne i patriotyczne.',
+            date: '2025-10-22 19:00:00',
+            location: 'Kościół NMP Wniebowziętej w Lwówku',
+            is_public: 1
+          }
+        ];
+
+        sampleConcerts.forEach((concert, index) => {
+          db.run(`
+            INSERT INTO concerts (title, description, date, location, is_public)
+            VALUES (?, ?, ?, ?, ?)
+          `, [concert.title, concert.description, concert.date, concert.location, concert.is_public]);
+        });
+
+        console.log('✅ Sample concerts added to database');
+      } else {
+        console.log('ℹ️ Concerts already exist in database');
+      }
+    });
+
     console.log('Database tables initialized');
   });
 }
