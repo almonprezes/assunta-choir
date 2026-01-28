@@ -83,7 +83,11 @@ dist
 
 # Gatsby files
 .cache/
-public
+public/
+
+# Allow CRA public folder
+!frontend/public/
+!frontend/public/**
 
 # Storybook build outputs
 .out
