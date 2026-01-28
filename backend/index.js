@@ -28,19 +28,24 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+app.use('/uploads', express.static('uploads', {
   setHeaders: (res, filePath) => {
     const ext = path.extname(filePath).toLowerCase();
-    if (ext === '.mp3') {
-      res.setHeader('Content-Type', 'audio/mpeg');
-    } else if (ext === '.wav') {
-      res.setHeader('Content-Type', 'audio/wav');
-    } else if (ext === '.m4a') {
-      res.setHeader('Content-Type', 'audio/mp4');
-    } else if (ext === '.ogg') {
-      res.setHeader('Content-Type', 'audio/ogg');
+    const mimeTypes = {
+      '.pdf': 'application/pdf',
+      '.mp3': 'audio/mpeg',
+      '.wav': 'audio/wav',
+      '.ogg': 'audio/ogg',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.svg': 'image/svg+xml'
+    };
+
+    if (mimeTypes[ext]) {
+      res.setHeader('Content-Type', mimeTypes[ext]);
     }
-    // Nie ustawiamy Content-Disposition - pozwalamy przeglądarce zdecydować
     res.setHeader('Access-Control-Allow-Origin', '*');
   }
 }));
