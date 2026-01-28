@@ -2,10 +2,10 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
-const db = require('../database');
+const { db } = require('../supabase-client');
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'assunta_choir_secret_key';
+const JWT_SECRET = process.env.JWT_SECRET || 'assunta_choir_super_secret_key_2024';
 
 router.post('/register', [
     body('username').isLength({ min: 3 }).withMessage('Username must be at least 3 characters'),
@@ -24,26 +24,29 @@ router.post('/register', [
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        db.run(
-            'INSERT INTO users (username, email, password, first_name, last_name, voice_part, is_approved) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [username, email, hashedPassword, firstName, lastName, voicePart, 0], // is_approved = 0 (oczekujące na zatwierdzenie)
-            function (err) {
-                if (err) {
-                    if (err.message.includes('UNIQUE constraint failed')) {
-                        return res.status(400).json({ error: 'Username or email already exists' });
-                    }
-                    return res.status(500).json({ error: 'Registration failed' });
-                }
+        const userData = {
+            username,
+            email,
+            password: hashedPassword,
+            first_name: firstName,
+            last_name: lastName,
+            voice_part: voicePart,
+            is_approved: false, // Oczekujące na zatwierdzenie
+            role: 'member'
+        };
 
-                // Nie zwracaj tokenu - użytkownik musi być zatwierdzony
-                res.status(201).json({
-                    message: 'Rejestracja zakończona pomyślnie. Twoje konto wymaga zatwierdzenia przez administratora.',
-                    requiresApproval: true
-                });
-            }
-        );
+        const newUser = await db.createUser(userData);
+
+        // Nie zwracaj tokenu - użytkownik musi być zatwierdzony
+        res.status(201).json({
+            message: 'Rejestracja zakończona pomyślnie. Twoje konto wymaga zatwierdzenia przez administratora.',
+            requiresApproval: true
+        });
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        if (error.message.includes('duplicate key')) {
+            return res.status(400).json({ error: 'Username or email already exists' });
+        }
+        res.status(500).json({ error: 'Registration failed' });
     }
 });
 
@@ -58,10 +61,8 @@ router.post('/login', [
 
     const { username, password } = req.body;
 
-    db.get('SELECT * FROM users WHERE username = ?', [username], async (err, user) => {
-        if (err) {
-            return res.status(500).json({ error: 'Server error' });
-        }
+    try {
+        const user = await db.getUserByUsername(username);
 
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials' });
@@ -93,7 +94,9 @@ router.post('/login', [
                 createdAt: user.created_at
             }
         });
-    });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 const authenticateToken = (req, res, next) => {

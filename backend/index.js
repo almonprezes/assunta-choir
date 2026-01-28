@@ -5,6 +5,9 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
 
+// Use Supabase instead of SQLite
+const { supabase } = require('./supabase-client');
+
 const authRoutes = require('./routes/auth');
 const concertRoutes = require('./routes/concerts');
 const rehearsalRoutes = require('./routes/rehearsals');
