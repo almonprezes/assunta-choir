@@ -69,6 +69,11 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Assunta Choir API server running on port ${PORT}`);
-});
+// Local dev: start HTTP server. On Vercel: export the app as a serverless handler.
+if (process.env.VERCEL) {
+  module.exports = app;
+} else {
+  app.listen(PORT, () => {
+    console.log(`Assunta Choir API server running on port ${PORT}`);
+  });
+}
