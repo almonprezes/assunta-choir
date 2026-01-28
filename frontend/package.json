@@ -4,13 +4,14 @@
     "description": "Frontend for Assunta choir website",
     "private": true,
     "dependencies": {
+        "@supabase/supabase-js": "^2.93.2",
+        "axios": "^1.6.2",
+        "clsx": "^2.0.0",
+        "lucide-react": "^0.294.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "react-router-dom": "^6.20.1",
-        "axios": "^1.6.2",
         "react-query": "^3.39.3",
-        "lucide-react": "^0.294.0",
-        "clsx": "^2.0.0"
+        "react-router-dom": "^6.20.1"
     },
     "scripts": {
         "start": "react-scripts start",
@@ -37,10 +38,10 @@
         ]
     },
     "devDependencies": {
-        "react-scripts": "5.0.1",
-        "tailwindcss": "^3.3.6",
         "autoprefixer": "^10.4.16",
-        "postcss": "^8.4.32"
+        "postcss": "^8.4.32",
+        "react-scripts": "5.0.1",
+        "tailwindcss": "^3.3.6"
     },
     "proxy": "http://localhost:5000"
 }
