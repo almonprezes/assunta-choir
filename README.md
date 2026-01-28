@@ -2,23 +2,24 @@
 
 Kompletna strona internetowa dla Parafialnego Chóru "Assunta" z backendem i frontendem.
 
-## Funkcjonalności
+## 🎵 Funkcjonalności v1.0.0
 
 ### Frontend (dla publiczności)
 - **Strona główna** - informacje o chórze, najnowsze wydarzenia
-- **Koncerty** - kalendarz nadchodzących koncertów
+- **Koncerty** - kalendarz nadchodzących koncertów z relacjami
 - **O chórze** - historia, misja i informacje o zespole
-- **Rejestracja** - formularz dla nowych członków
+- **Rejestracja** - formularz dla nowych członków z zatwierdzaniem
 
 ### Backend (strefa członkowska)
 - **Panel użytkownika** - personalizowany dashboard
+- **Profil użytkownika** - edycja danych osobowych i głosu
 - **Próby** - terminarz prób z informacjami o lokalizacji i czasie trwania
 - **Nagrania** - biblioteka nagrań audio z prób i koncertów
-- **Partytury** - udostępnianie nut i materiałów muzycznych
-- **Członkowie** - zarządzanie członkami (dla administratorów)
+- **Partytury** - udostępnianie nut i materiałów muzycznych (PDF)
+- **Członkowie** - zarządzanie członkami z systemem zatwierdzania
 - **System uwierzytelniania** - bezpieczne logowanie i rejestracja
 
-## Technologia
+## 🛠️ Technologia
 
 ### Backend
 - **Node.js** z **Express.js**
@@ -26,6 +27,7 @@ Kompletna strona internetowa dla Parafialnego Chóru "Assunta" z backendem i fro
 - **JWT** do autentykacji
 - **Multer** do uploadu plików
 - **bcryptjs** do hashowania haseł
+- **Rate limiting** i **CORS**
 
 ### Frontend
 - **React 18** z **React Router**
@@ -34,7 +36,7 @@ Kompletna strona internetowa dla Parafialnego Chóru "Assunta" z backendem i fro
 - **Lucide React** do ikon
 - **Axios** do komunikacji z API
 
-## Instalacja
+## 🚀 Instalacja
 
 ### Krok 1: Zainstaluj zależności
 ```bash
@@ -63,7 +65,7 @@ npm run server
 npm run client
 ```
 
-## Struktura projektu
+## 📁 Struktura projektu
 
 ```
 windsurf-project/
@@ -82,7 +84,25 @@ windsurf-project/
 └── package.json            # Główny plik package.json
 ```
 
-## API Endpoints
+## 🔄 Przepływ pracy Git
+
+### Branches
+- **master** - stabilna wersja produkcyjna
+- **develop** - development branch
+- **production** - branch dla wdrożeń produkcyjnych
+
+### Tagi
+- **v1.0.0** - pierwsza wersja produkcyjna
+
+### Conventional Commits
+- `feat:` - nowe funkcjonalności
+- `fix:` - poprawki błędów
+- `docs:` - dokumentacja
+- `style:` - formatowanie kodu
+- `refactor:` - refaktoryzacja
+- `test:` - testy
+
+## 📡 API Endpoints
 
 ### Autentykacja
 - `POST /api/auth/register` - Rejestracja użytkownika
@@ -114,16 +134,25 @@ windsurf-project/
 
 ### Członkowie (wymagają logowania)
 - `GET /api/members` - Pobierz członków
+- `GET /api/members/pending` - Pobierz oczekujących członków (admin)
+- `PUT /api/members/:id/approve` - Zatwierdź członka (admin)
+- `DELETE /api/members/:id/reject` - Odrzuć członka (admin)
 - `GET /api/members/profile` - Pobierz profil użytkownika
 - `PUT /api/members/profile` - Aktualizuj profil
 - `PUT /api/members/:id/role` - Zmień rolę (admin)
 - `DELETE /api/members/:id` - Usuń członka (admin)
 
-## Domyślne dane
+## 👤 Domyślne dane
 
-Po pierwszym uruchomieniu aplikacja automatycznie utworzy bazę danych SQLite z wymaganymi tabelami. Możesz zarejestrować pierwszego użytkownika, który automatycznie otrzyma rolę członka.
+### Administrator
+- **Login:** `norbert`
+- **Hasło:** `assunta2024`
+- **Rola:** Administrator
+- **Dane:** Norbert Bryłka, Bas
 
-## Wdrożenie
+Po pierwszym uruchomieniu aplikacja automatycznie utworzy bazę danych SQLite z wymaganymi tabelami i domyślnym administratorem.
+
+## 🚀 Wdrożenie
 
 ### Backend
 - Skonfiguruj zmienne środowiskowe produkcyjne
@@ -135,10 +164,38 @@ Po pierwszym uruchomieniu aplikacja automatycznie utworzy bazę danych SQLite z 
 - Wdróż pliki z `frontend/build` na serwer WWW
 - Skonfiguruj routing po stronie serwera dla SPA
 
-## Licencja
+## 🎯 Funkcjonalności v1.0.0
+
+### ✅ Zaimplementowane
+- System autentykacji i autoryzacji
+- Zarządzanie członkami z zatwierdzaniem
+- Edycja profilu użytkownika
+- Zarządzanie koncertami z relacjami
+- Biblioteka partytur (PDF) z pobieraniem
+- Biblioteka nagrań audio
+- System prób
+- Wsparcie dla polskich znaków
+- Profesjonalny UI z Tailwind CSS
+- Dashboard admina
+- Upload plików z bezpieczeństwem
+- Baza danych SQLite
+- API z Express.js i Node.js
+
+### 🔧 Poprawki
+- Poprawiono kodowanie polskich znaków (Bryłka)
+- Naprawiono pobieranie partytur
+- Naprawiono API routes dla członków
+- Poprawiono serwowanie plików statycznych
+- Naprawiono kodowanie w bazie danych
+
+## 📄 Licencja
 
 MIT License
 
-## Kontakt
+## 📞 Kontakt
 
 W przypadku pytań lub problemów, skontaktuj się z administratorem projektu.
+
+---
+
+**Chór Assunta Lwówek** - Parafialny chór z Lwówka Wielkopolskiego 🎶
