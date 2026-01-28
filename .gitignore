@@ -112,3 +112,6 @@ Thumbs.db
 # Windows specific
 desktop.ini
 node_modules
+
+# SQL fix files
+fix_*.sql
