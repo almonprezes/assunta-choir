@@ -74,7 +74,18 @@ const db = {
         return data;
     },
 
-    async getPendingUsers() {
+    async getAllMembers() {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('is_approved', true)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        return data;
+    },
+
+    async getPendingMembers() {
         const { data, error } = await supabase
             .from('users')
             .select('*')
@@ -86,12 +97,79 @@ const db = {
         return data;
     },
 
+    async getUserProfile(id) {
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error && error.code !== 'PGRST116') {
+            throw error;
+        }
+
+        return data;
+    },
+
+    async updateUserProfile(id, userData) {
+        const { data, error } = await supabase
+            .from('users')
+            .update(userData)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    async approveMember(id) {
+        const { data, error } = await supabase
+            .from('users')
+            .update({ is_approved: true })
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    async rejectMember(id) {
+        const { error } = await supabase
+            .from('users')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
+    async deleteMember(id) {
+        const { error } = await supabase
+            .from('users')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
     // Concerts
     async getAllConcerts() {
         const { data, error } = await supabase
             .from('concerts')
             .select('*')
             .order('date', { ascending: true });
+
+        if (error) throw error;
+        return data;
+    },
+
+    async getConcertById(id) {
+        const { data, error } = await supabase
+            .from('concerts')
+            .select('*')
+            .eq('id', id)
+            .single();
 
         if (error) throw error;
         return data;
@@ -108,12 +186,44 @@ const db = {
         return data;
     },
 
+    async updateConcert(id, updates) {
+        const { data, error } = await supabase
+            .from('concerts')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    async deleteConcert(id) {
+        const { error } = await supabase
+            .from('concerts')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
     // Rehearsals
     async getAllRehearsals() {
         const { data, error } = await supabase
             .from('rehearsals')
             .select('*')
             .order('date', { ascending: true });
+
+        if (error) throw error;
+        return data;
+    },
+
+    async getRehearsalById(id) {
+        const { data, error } = await supabase
+            .from('rehearsals')
+            .select('*')
+            .eq('id', id)
+            .single();
 
         if (error) throw error;
         return data;
@@ -130,6 +240,27 @@ const db = {
         return data;
     },
 
+    async updateRehearsal(id, updates) {
+        const { data, error } = await supabase
+            .from('rehearsals')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    async deleteRehearsal(id) {
+        const { error } = await supabase
+            .from('rehearsals')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
     // Recordings
     async getAllRecordings() {
         const { data, error } = await supabase
@@ -139,6 +270,20 @@ const db = {
                 users(username)
             `)
             .order('upload_date', { ascending: false });
+
+        if (error) throw error;
+        return data;
+    },
+
+    async getRecordingById(id) {
+        const { data, error } = await supabase
+            .from('recordings')
+            .select(`
+                *,
+                users(username)
+            `)
+            .eq('id', id)
+            .single();
 
         if (error) throw error;
         return data;
@@ -155,6 +300,27 @@ const db = {
         return data;
     },
 
+    async updateRecording(id, updates) {
+        const { data, error } = await supabase
+            .from('recordings')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    async deleteRecording(id) {
+        const { error } = await supabase
+            .from('recordings')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
     // Sheet Music
     async getAllSheetMusic() {
         const { data, error } = await supabase
@@ -169,6 +335,20 @@ const db = {
         return data;
     },
 
+    async getSheetMusicById(id) {
+        const { data, error } = await supabase
+            .from('sheet_music')
+            .select(`
+                *,
+                users(username)
+            `)
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
     async createSheetMusic(sheetData) {
         const { data, error } = await supabase
             .from('sheet_music')
@@ -178,6 +358,27 @@ const db = {
 
         if (error) throw error;
         return data;
+    },
+
+    async updateSheetMusic(id, updates) {
+        const { data, error } = await supabase
+            .from('sheet_music')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return data;
+    },
+
+    async deleteSheetMusic(id) {
+        const { error } = await supabase
+            .from('sheet_music')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
     }
 };
 
