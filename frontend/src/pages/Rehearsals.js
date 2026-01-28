@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import axios from 'axios';
-import { Calendar, Clock, MapPin, Plus, Edit, Trash2, Users } from 'lucide-react';
+import { Calendar, Clock, MapPin, Plus, Edit, Trash2 } from 'lucide-react';
 
 const fetchRehearsals = async () => {
     const { data } = await axios.get('/api/rehearsals');
@@ -277,8 +277,8 @@ const Rehearsals = () => {
                                 <div
                                     key={rehearsal.id}
                                     className={`bg-white rounded-lg shadow-md p-6 border-l-4 ${isPast ? 'border-gray-300 opacity-75' :
-                                            isToday ? 'border-green-500' :
-                                                'border-choir-primary'
+                                        isToday ? 'border-green-500' :
+                                            'border-choir-primary'
                                         }`}
                                 >
                                     <div className="flex justify-between items-start mb-4">

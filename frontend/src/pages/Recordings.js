@@ -128,11 +128,6 @@ const Recordings = () => {
         }
     };
 
-    const getFileName = (filePath) => {
-        if (!filePath) return 'audio.mp3';
-        return filePath.replace(/^audioFile-/, '').replace(/-\d+/, '');
-    };
-
     const handleDownload = (recording) => {
         const cleanTitle = recording.title
             .replace(/[^\w\sąęćśźżółńĄĘĆŚŹŻÓŁŃ-]/g, '') // Usuń znaki specjalne, zachowaj polskie znaki

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import axios from 'axios';
-import { FileText, Plus, Edit, Trash2, Download, Upload, Filter, Music } from 'lucide-react';
+import { FileText, Plus, Edit, Trash2, Download, Upload, Filter } from 'lucide-react';
 
 const fetchSheetMusic = async () => {
     const { data } = await axios.get('/api/sheet-music');

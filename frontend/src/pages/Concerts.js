@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from 'react-query';
 import axios from 'axios';
-import { Calendar, MapPin, Clock, Music } from 'lucide-react';
+import { Calendar, MapPin, Music } from 'lucide-react';
 
 const fetchConcerts = async () => {
     const { data } = await axios.get('/api/concerts');
