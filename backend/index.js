@@ -5,6 +5,9 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
 
+// Use SQLite database
+const db = require('./database');
+
 const authRoutes = require('./routes/auth');
 const concertRoutes = require('./routes/concerts');
 const rehearsalRoutes = require('./routes/rehearsals');
