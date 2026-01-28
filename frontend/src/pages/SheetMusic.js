@@ -99,8 +99,12 @@ const SheetMusic = () => {
     };
 
     const handleDownload = (filePath, title) => {
+        // Construct full URL to the server
+        const serverUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+        const fullUrl = `${serverUrl}/${filePath}`;
+
         const link = document.createElement('a');
-        link.href = filePath;
+        link.href = fullUrl;
         link.download = title;
         link.target = '_blank';
         document.body.appendChild(link);

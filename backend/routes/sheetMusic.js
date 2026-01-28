@@ -96,9 +96,12 @@ router.post('/', authenticateToken, upload.single('sheetFile'), [
     const filePath = req.file.path;
     const fileSize = req.file.size;
 
+    // Convert absolute path to relative path for frontend
+    const relativePath = path.relative(path.join(__dirname, '..'), filePath).replace(/\\/g, '/');
+
     db.run(
         'INSERT INTO sheet_music (title, composer, description, file_path, file_size, uploaded_by, voice_part) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [title, composer, description, filePath, fileSize, req.user.userId, voicePart],
+        [title, composer, description, relativePath, fileSize, req.user.userId, voicePart],
         function (err) {
             if (err) {
                 fs.unlinkSync(filePath);
