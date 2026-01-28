@@ -7,6 +7,20 @@ const router = express.Router();
 
 router.get('/', authenticateToken, (req, res) => {
     const query = req.user.role === 'admin'
+        ? 'SELECT id, username, email, first_name, last_name, voice_part, phone, role, created_at FROM users ORDER BY created_at DESC'
+        : 'SELECT id, username, email, first_name, last_name, voice_part, phone, role, created_at FROM users WHERE is_approved = 1 ORDER BY created_at DESC';
+
+    db.all(query, (err, users) => {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to fetch members' });
+        }
+        res.json(users);
+    });
+});
+
+// Route dla recordings (dla kompatybilności)
+router.get('/recordings', authenticateToken, (req, res) => {
+    const query = req.user.role === 'admin'
         ? 'SELECT r.*, u.username as uploaded_by_username FROM recordings r LEFT JOIN users u ON r.uploaded_by = u.id ORDER BY r.upload_date DESC'
         : 'SELECT r.*, u.username as uploaded_by_username FROM recordings r LEFT JOIN users u ON r.uploaded_by = u.id WHERE r.is_public = 1 OR r.uploaded_by = ? ORDER BY r.upload_date DESC';
 
