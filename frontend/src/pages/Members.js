@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
-import { Users, Edit, Trash2, Shield, User, Mail, Music, Crown } from 'lucide-react';
+import { Users, Edit, Trash2, Shield, User, Mail, Music, Crown, Clock, AlertCircle } from 'lucide-react';
 
 const fetchMembers = async () => {
     const { data } = await axios.get('/api/members');
@@ -23,12 +23,24 @@ const Members = () => {
     const [editingMember, setEditingMember] = useState(null);
     const [showRoleModal, setShowRoleModal] = useState(false);
     const [newRole, setNewRole] = useState('');
+    const [activeTab, setActiveTab] = useState('approved'); // 'approved' lub 'pending'
 
     const queryClient = useQueryClient();
 
     const { data: members, isLoading, error } = useQuery(
         'members',
         fetchMembers,
+        {
+            refetchOnWindowFocus: false,
+        }
+    );
+
+    const { data: pendingMembers, isLoading: pendingLoading } = useQuery(
+        'pendingMembers',
+        async () => {
+            const { data } = await axios.get('/api/members/pending');
+            return data;
+        },
         {
             refetchOnWindowFocus: false,
         }
@@ -64,6 +76,52 @@ const Members = () => {
         if (window.confirm(`Czy na pewno chcesz usunąć członka "${name}"?`)) {
             deleteMemberMutation.mutate(id);
         }
+    };
+
+    const approveMutation = useMutation(async (id) => {
+        const { data } = await axios.put(`/api/members/${id}/approve`);
+        return data;
+    }, {
+        onSuccess: () => {
+            queryClient.invalidateQueries('pendingMembers');
+            queryClient.invalidateQueries('members');
+            setShowConfirmDialog(false);
+            setEditingMember(null);
+        }
+    });
+
+    const rejectMutation = useMutation(async (id) => {
+        const { data } = await axios.delete(`/api/members/${id}/reject`);
+        return data;
+    }, {
+        onSuccess: () => {
+            queryClient.invalidateQueries('pendingMembers');
+            setShowConfirmDialog(false);
+            setEditingMember(null);
+        }
+    });
+
+    const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+    const [action, setAction] = useState(null);
+
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('pl-PL', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const getVoicePartLabel = (voicePart) => {
+        const labels = {
+            'Sopran': 'Sopran',
+            'Alt': 'Alt',
+            'Tenor': 'Tenor',
+            'Bas': 'Bas'
+        };
+        return labels[voicePart] || voicePart;
     };
 
     const getVoicePartColor = (voicePart) => {
@@ -117,29 +175,63 @@ const Members = () => {
         <div className="min-h-screen bg-gray-50">
             <div className="choir-gradient text-white py-8">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div>
-                        <h1 className="text-3xl font-bold">Zarządzanie członkami</h1>
-                        <p className="opacity-90 mt-1">Administracja członkami chóru Assunta</p>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                            <Users className="h-8 w-8" />
+                            <h1 className="text-3xl font-bold">Zarządzanie członkami</h1>
+                        </div>
+                        <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2">
+                                <span className="text-lg font-semibold">
+                                    {members?.length || 0} zatwierdzonych
+                                </span>
+                                <span className="text-gray-300">|</span>
+                                <span className="text-lg font-semibold">
+                                    {pendingMembers?.length || 0} oczekujących
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-200">
-                        <div className="flex justify-between items-center">
-                            <h2 className="text-xl font-bold text-gray-900">
-                                Lista członków ({members?.length || 0})
-                            </h2>
-                            <div className="flex items-center space-x-2 text-sm text-gray-600">
-                                <div className="flex items-center">
-                                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                                    Administrator
+                {/* Tab navigation */}
+                <div className="flex justify-center mb-8">
+                    <div className="bg-white rounded-lg shadow-md p-1 inline-flex">
+                        <button
+                            onClick={() => setActiveTab('approved')}
+                            className={`px-6 py-2 rounded-md transition-colors ${activeTab === 'approved'
+                                ? 'bg-choir-primary text-white'
+                                : 'text-gray-600 hover:text-gray-900'
+                                }`}
+                        >
+                            Zatwierdzeni członkowie
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('pending')}
+                            className={`px-6 py-2 rounded-md transition-colors flex items-center ${activeTab === 'pending'
+                                ? 'bg-choir-primary text-white'
                                 </div>
-                                <div className="flex items-center">
-                                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                                    Członek
-                                </div>
+                            ))}
+                </div>
+                    )}
+            </div>
+            )}
+
+            {/* Approved members tab */}
+            {activeTab === 'approved' && (
+                <div>
+                    <div className="mb-6">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Zatwierdzeni członkowie</h2>
+                        <div className="flex items-center space-x-2 text-sm text-gray-600">
+                            <div className="flex items-center">
+                                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                                Administrator
+                            </div>
+                            <div className="flex items-center">
+                                <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                                Członek
                             </div>
                         </div>
                     </div>
@@ -245,94 +337,148 @@ const Members = () => {
                         </table>
                     </div>
                 </div>
+            )}
 
-                <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900">Całkowita liczba członków</h3>
-                            <Users className="h-6 w-6 text-choir-primary" />
-                        </div>
-                        <div className="text-3xl font-bold text-choir-primary">
-                            {members?.length || 0}
-                        </div>
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">Całkowita liczba członków</h3>
+                        <Users className="h-6 w-6 text-choir-primary" />
                     </div>
-
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900">Administratorzy</h3>
-                            <Crown className="h-6 w-6 text-yellow-500" />
-                        </div>
-                        <div className="text-3xl font-bold text-yellow-500">
-                            {members?.filter(m => m.role === 'admin').length || 0}
-                        </div>
+                    <div className="text-3xl font-bold text-choir-primary">
+                        {members?.length || 0}
                     </div>
+                </div>
 
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900">Członkowie</h3>
-                            <User className="h-6 w-6 text-blue-500" />
-                        </div>
-                        <div className="text-3xl font-bold text-blue-500">
-                            {members?.filter(m => m.role === 'member').length || 0}
-                        </div>
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">Administratorzy</h3>
+                        <Crown className="h-6 w-6 text-yellow-500" />
+                    </div>
+                    <div className="text-3xl font-bold text-yellow-500">
+                        {members?.filter(m => m.role === 'admin').length || 0}
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">Członkowie</h3>
+                        <User className="h-6 w-6 text-blue-500" />
+                    </div>
+                    <div className="text-3xl font-bold text-blue-500">
+                        {members?.filter(m => m.role === 'member').length || 0}
                     </div>
                 </div>
             </div>
+        </div>
 
-            {showRoleModal && editingMember && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                        <h3 className="text-lg font-bold mb-4">
-                            Zmień rolę dla {editingMember.first_name} {editingMember.last_name}
-                        </h3>
-
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Nowa rola
-                                </label>
-                                <select
-                                    value={newRole}
-                                    onChange={(e) => setNewRole(e.target.value)}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-choir-primary focus:border-choir-primary"
-                                >
-                                    <option value="member">Członek</option>
-                                    <option value="admin">Administrator</option>
-                                </select>
-                            </div>
-
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
-                                <p className="text-sm text-yellow-800">
-                                    <strong>Uwaga:</strong> Administratorzy mają pełny dostęp do zarządzania stroną,
-                                    w tym do usuwania członków i zmiany ról.
-                                </p>
-                            </div>
+        {
+        showConfirmDialog && editingMember && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="bg-white rounded-lg max-w-md w-full p-6">
+                    <div className="text-center">
+                        <div className={`w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center ${action === 'approve' ? 'bg-green-100' : 'bg-red-100'
+                            }`}>
+                            {action === 'approve' ? (
+                                <Check className="h-8 w-8 text-green-600" />
+                            ) : (
+                                <X className="h-8 w-8 text-red-600" />
+                            )}
                         </div>
 
-                        <div className="flex justify-end space-x-3 mt-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                            {action === 'approve' ? 'Zatwierdzić członka?' : 'Odrzucić członka?'}
+                        </h3>
+
+                        <p className="text-gray-600 mb-6">
+                            {action === 'approve'
+                                ? `Czy na pewno chcesz zatwierdzić ${editingMember.first_name} ${editingMember.last_name} jako członka chóru?`
+                                : `Czy na pewno chcesz odrzucić zgłoszenie ${editingMember.first_name} ${editingMember.last_name}?`}
+                        </p>
+
+                        <div className="flex space-x-3">
                             <button
-                                onClick={() => {
-                                    setShowRoleModal(false);
-                                    setEditingMember(null);
-                                    setNewRole('');
-                                }}
-                                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                                onClick={() => setShowConfirmDialog(false)}
+                                className="flex-1 bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors"
                             >
                                 Anuluj
                             </button>
                             <button
-                                onClick={handleRoleUpdate}
-                                disabled={updateRoleMutation.isLoading}
-                                className="px-4 py-2 bg-choir-primary text-white rounded-md hover:bg-choir-secondary disabled:opacity-50"
+                                onClick={confirmAction}
+                                disabled={approveMutation.isLoading || rejectMutation.isLoading}
+                                className={`flex-1 px-4 py-2 rounded-md transition-colors disabled:opacity-50 ${action === 'approve'
+                                    ? 'bg-green-500 text-white hover:bg-green-600'
+                                    : 'bg-red-500 text-white hover:bg-red-600'
+                                    }`}
                             >
-                                {updateRoleMutation.isLoading ? 'Zapisywanie...' : 'Zapisz zmiany'}
+                                {(approveMutation.isLoading || rejectMutation.isLoading) ? (
+                                    <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mx-auto"></div>
+                                ) : (
+                                    action === 'approve' ? 'Zatwierdź' : 'Odrzuć'
+                                )}
                             </button>
                         </div>
                     </div>
                 </div>
-            )}
-        </div>
-    );
-};
+            </div>
+        )
+    }
+
+    {
+        showRoleModal && editingMember && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                    <h3 className="text-lg font-bold mb-4">
+                        Zmień rolę dla {editingMember.first_name} {editingMember.last_name}
+                    </h3>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Nowa rola
+                            </label>
+                            <select
+                                value={newRole}
+                                onChange={(e) => setNewRole(e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-choir-primary focus:border-choir-primary"
+                            >
+                                <option value="member">Członek</option>
+                                <option value="admin">Administrator</option>
+                            </select>
+                        </div>
+
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                            <p className="text-sm text-yellow-800">
+                                <strong>Uwaga:</strong> Administratorzy mają pełny dostęp do zarządzania stroną,
+                                w tym do usuwania członków i zmiany ról.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end space-x-3 mt-6">
+                        <button
+                            onClick={() => {
+                                setShowRoleModal(false);
+                                setEditingMember(null);
+                                setNewRole('');
+                            }}
+                            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                        >
+                            Anuluj
+                        </button>
+                        <button
+                            onClick={handleRoleUpdate}
+                            disabled={updateRoleMutation.isLoading}
+                            className="px-4 py-2 bg-choir-primary text-white rounded-md hover:bg-choir-secondary disabled:opacity-50"
+                        >
+                            {updateRoleMutation.isLoading ? 'Zapisywanie...' : 'Zapisz zmiany'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+    </div >
+);
 
 export default Members;

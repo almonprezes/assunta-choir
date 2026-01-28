@@ -25,8 +25,8 @@ router.post('/register', [
         const hashedPassword = await bcrypt.hash(password, 10);
 
         db.run(
-            'INSERT INTO users (username, email, password, first_name, last_name, voice_part) VALUES (?, ?, ?, ?, ?, ?)',
-            [username, email, hashedPassword, firstName, lastName, voicePart],
+            'INSERT INTO users (username, email, password, first_name, last_name, voice_part, is_approved) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [username, email, hashedPassword, firstName, lastName, voicePart, 0], // is_approved = 0 (oczekujące na zatwierdzenie)
             function (err) {
                 if (err) {
                     if (err.message.includes('UNIQUE constraint failed')) {
@@ -35,8 +35,11 @@ router.post('/register', [
                     return res.status(500).json({ error: 'Registration failed' });
                 }
 
-                const token = jwt.sign({ userId: this.lastID, username, role: 'member' }, JWT_SECRET, { expiresIn: '24h' });
-                res.status(201).json({ token, user: { id: this.lastID, username, email, firstName, lastName, voicePart, role: 'member' } });
+                // Nie zwracaj tokenu - użytkownik musi być zatwierdzony
+                res.status(201).json({
+                    message: 'Rejestracja zakończona pomyślnie. Twoje konto wymaga zatwierdzenia przez administratora.',
+                    requiresApproval: true
+                });
             }
         );
     } catch (error) {
@@ -64,6 +67,11 @@ router.post('/login', [
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
+        // Sprawdź czy konto jest zatwierdzone (admin zawsze zatwierdzony)
+        if (!user.is_approved && user.role !== 'admin') {
+            return res.status(403).json({ error: 'Konto nie zostało jeszcze zatwierdzone przez administratora. Skontaktuj się z administratorem chóru.' });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({ error: 'Invalid credentials' });
@@ -79,7 +87,10 @@ router.post('/login', [
                 firstName: user.first_name,
                 lastName: user.last_name,
                 voicePart: user.voice_part,
-                role: user.role
+                phone: user.phone,
+                role: user.role,
+                isApproved: user.is_approved,
+                createdAt: user.created_at
             }
         });
     });

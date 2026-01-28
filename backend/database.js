@@ -24,6 +24,8 @@ function initializeTables() {
         first_name TEXT,
         last_name TEXT,
         voice_part TEXT,
+        phone TEXT,
+        is_approved BOOLEAN DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);

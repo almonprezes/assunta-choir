@@ -7,14 +7,80 @@ const router = express.Router();
 
 router.get('/', authenticateToken, (req, res) => {
     const query = req.user.role === 'admin'
-        ? 'SELECT id, username, email, first_name, last_name, voice_part, role, created_at FROM users ORDER BY last_name, first_name'
-        : 'SELECT id, username, first_name, last_name, voice_part FROM users WHERE role != "admin" ORDER BY last_name, first_name';
+        ? 'SELECT r.*, u.username as uploaded_by_username FROM recordings r LEFT JOIN users u ON r.uploaded_by = u.id ORDER BY r.upload_date DESC'
+        : 'SELECT r.*, u.username as uploaded_by_username FROM recordings r LEFT JOIN users u ON r.uploaded_by = u.id WHERE r.is_public = 1 OR r.uploaded_by = ? ORDER BY r.upload_date DESC';
 
-    db.all(query, [], (err, members) => {
+    const params = req.user.role === 'admin' ? [] : [req.user.userId];
+
+    db.all(query, params, (err, recordings) => {
         if (err) {
-            return res.status(500).json({ error: 'Failed to fetch members' });
+            return res.status(500).json({ error: 'Failed to fetch recordings' });
         }
-        res.json(members);
+        res.json(recordings);
+    });
+});
+
+// Pobierz oczekujących członków
+router.get('/pending', authenticateToken, (req, res) => {
+    if (req.user.role !== 'admin' && req.user.username !== 'norbert') {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    db.all(
+        'SELECT id, username, email, first_name, last_name, voice_part, phone, created_at FROM users WHERE is_approved = 0 AND role != "admin" ORDER BY created_at DESC',
+        (err, users) => {
+            if (err) {
+                return res.status(500).json({ error: 'Failed to fetch pending users' });
+            }
+            res.json(users);
+        }
+    );
+});
+
+// Zatwierdź członka
+router.put('/:id/approve', authenticateToken, (req, res) => {
+    if (req.user.role !== 'admin' && req.user.username !== 'norbert') {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { id } = req.params;
+
+    db.run('UPDATE users SET is_approved = 1 WHERE id = ?', [id], function (err) {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to approve user' });
+        }
+
+        if (this.changes === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        db.get('SELECT id, username, email, first_name, last_name, voice_part, phone, role, is_approved, created_at FROM users WHERE id = ?', [id], (err, user) => {
+            if (err) {
+                return res.status(500).json({ error: 'Failed to retrieve updated user' });
+            }
+            res.json({ message: 'User approved successfully', user });
+        });
+    });
+});
+
+// Odrzuć członka
+router.delete('/:id/reject', authenticateToken, (req, res) => {
+    if (req.user.role !== 'admin' && req.user.username !== 'norbert') {
+        return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { id } = req.params;
+
+    db.run('DELETE FROM users WHERE id = ? AND is_approved = 0', [id], function (err) {
+        if (err) {
+            return res.status(500).json({ error: 'Failed to reject user' });
+        }
+
+        if (this.changes === 0) {
+            return res.status(404).json({ error: 'Pending user not found' });
+        }
+
+        res.json({ message: 'User rejected successfully' });
     });
 });
 
@@ -82,6 +148,55 @@ router.put('/profile', authenticateToken, [
                     res.json(user);
                 }
             );
+        }
+    );
+});
+
+router.put('/profile', authenticateToken, [
+    body('firstName').optional().notEmpty().withMessage('First name cannot be empty'),
+    body('lastName').optional().notEmpty().withMessage('Last name cannot be empty'),
+    body('email').optional().isEmail().withMessage('Valid email required'),
+    body('phone').optional().isString(),
+    body('voicePart').optional().isIn(['Sopran', 'Alt', 'Tenor', 'Bas'])
+], (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { firstName, lastName, email, phone, voicePart } = req.body;
+    const updates = [];
+    const values = [];
+
+    if (firstName !== undefined) { updates.push('first_name = ?'); values.push(firstName); }
+    if (lastName !== undefined) { updates.push('last_name = ?'); values.push(lastName); }
+    if (email !== undefined) { updates.push('email = ?'); values.push(email); }
+    if (phone !== undefined) { updates.push('phone = ?'); values.push(phone); }
+    if (voicePart !== undefined) { updates.push('voice_part = ?'); values.push(voicePart); }
+
+    if (updates.length === 0) {
+        return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    values.push(req.user.userId);
+
+    db.run(
+        `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
+        values,
+        function (err) {
+            if (err) {
+                if (err.message.includes('UNIQUE constraint failed')) {
+                    return res.status(400).json({ error: 'Email already exists' });
+                }
+                return res.status(500).json({ error: 'Failed to update profile' });
+            }
+
+            db.get('SELECT id, username, email, first_name, last_name, voice_part, role, phone, created_at FROM users WHERE id = ?', [req.user.userId], (err, user) => {
+                if (err) {
+                    return res.status(500).json({ error: 'Failed to retrieve updated profile' });
+                }
+                res.json(user);
+            });
         }
     );
 });
