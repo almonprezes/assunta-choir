@@ -1,5 +1,5 @@
 import React from 'react';
-import { Music, Users, Heart, Award, Clock, MapPin } from 'lucide-react';
+import { Music, Users, Heart, Award } from 'lucide-react';
 
 const About = () => {
     return (
@@ -25,7 +25,7 @@ const About = () => {
                         </h2>
                         <p className="text-lg text-gray-700 mb-4">
                             Parafialny chór Assunta został założony w 2020 roku z inicjatywy Magdaleny
-                            Matuszewskiej-Bryłkaoraz grupy pasjonatów muzyki sakralnej , przy zgodzie i wielkim 
+                            Matuszewskiej-Bryłkaoraz grupy pasjonatów muzyki sakralnej , przy zgodzie i wielkim
                             wsparciu ówczesnego proboszcza ks. Proboszcza Grzegorza Gałkowskiego .
                             Od początku istnienia nasz zespół stawiał sobie za cel uświetnianie liturgii
                             oraz krzewienie kultury muzycznej w lokalnej społeczności.
@@ -170,7 +170,7 @@ const About = () => {
                                 </div>
                             </div>
                             <p className="text-gray-700">
-                                Informatyk, programista, mechatronik, wsparcie w wielu tematach. Od początku 
+                                Informatyk, programista, mechatronik, wsparcie w wielu tematach. Od początku
                                 wspiera pracę chóru, dbając o wszystko, w czym potrafi pomóc
                                 Pasjonat Web 3.0. Konserwatysta.
                             </p>

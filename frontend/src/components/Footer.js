@@ -25,13 +25,13 @@ const Footer = () => {
                             >
                                 <Facebook className="h-5 w-5" />
                             </a>
-                            <a
-                                href="#"
-                                className="text-gray-300 hover:text-choir-accent transition-colors"
+                            <button
+                                className="text-gray-300 hover:text-choir-accent transition-colors cursor-not-allowed"
                                 title="Instagram (wkrótce)"
+                                disabled
                             >
                                 <Instagram className="h-5 w-5" />
-                            </a>
+                            </button>
                         </div>
                     </div>
 
