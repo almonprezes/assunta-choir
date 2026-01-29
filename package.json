@@ -4,7 +4,7 @@
   "description": "Website for Parafialny chór Assunta with frontend and backend",
   "main": "backend/index.js",
   "scripts": {
-    "start": "cd backend && npm start",
+    "start": "node setup-symlink.js && node server/index.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd backend && npm run dev",
     "client": "cd frontend && npm start",
