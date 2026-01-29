@@ -2,7 +2,7 @@
   "name": "assunta-choir-website",
   "version": "1.0.0",
   "description": "Website for Parafialny chór Assunta with frontend and backend",
-  "main": "server/index.js",
+  "main": "backend/index.js",
   "scripts": {
     "start": "cd backend && npm start",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
