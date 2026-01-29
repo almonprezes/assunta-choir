@@ -2,14 +2,14 @@
   "name": "assunta-choir-website",
   "version": "1.0.0",
   "description": "Website for Parafialny chór Assunta with frontend and backend",
-  "main": "backend/index.js",
+  "main": "server/index.js",
   "scripts": {
-    "start": "node setup-symlink.js && node server/index.js",
+    "start": "node server/index.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "cd backend && npm run dev",
+    "server": "cd server && npm run dev",
     "client": "cd frontend && npm start",
     "build": "cd frontend && npm install && npm run build",
-    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install"
+    "install-all": "npm install && cd server && npm install && cd ../frontend && npm install"
   },
   "keywords": [
     "choir",
